@@ -36,6 +36,9 @@ export 'scoring/scoring_trace_builder.dart';
 export 'scoring/scoring_math.dart';
 export 'scoring/config/score_config_v1.dart';
 
+// Telemetry
+export 'telemetry/snapshot_to_telemetry_mapper.dart';
+
 // Generator (C.4)
 export 'generator/seedable_random.dart';
 export 'generator/property_generator.dart';

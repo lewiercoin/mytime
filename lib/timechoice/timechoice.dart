@@ -38,6 +38,7 @@ export 'scoring/config/score_config_v1.dart';
 
 // Telemetry
 export 'telemetry/snapshot_to_telemetry_mapper.dart';
+export 'telemetry/telemetry_idempotency.dart';
 
 // Runner (C.6)
 export 'timechoice_loop_runner.dart';

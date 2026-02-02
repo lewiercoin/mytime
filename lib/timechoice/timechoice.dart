@@ -28,3 +28,10 @@ export 'validators/scoring_trace_validator.dart';
 export 'validators/telemetry_validator.dart';
 export 'validators/judgement_lint.dart';
 export 'validators/scoring_input_whitelist.dart';
+export 'validators/score_config_validator.dart';
+
+// Scoring + config
+export 'scoring/scoring_engine.dart';
+export 'scoring/scoring_trace_builder.dart';
+export 'scoring/scoring_math.dart';
+export 'scoring/config/score_config_v1.dart';

@@ -2,6 +2,20 @@ import 'package:mytime/timechoice/timechoice.dart';
 
 import 'demo_catalog.dart';
 
+class CompletedMissionRecord {
+  final String missionId;
+  final DateTime completedAtUtc;
+  final int actualTimeSpentMin;
+  final WorldOutcome outcome;
+
+  CompletedMissionRecord({
+    required this.missionId,
+    required this.completedAtUtc,
+    required this.actualTimeSpentMin,
+    required this.outcome,
+  });
+}
+
 class DemoAppState {
   OrchestratorInputV1 input;
   MissionCatalogV1 catalog;
@@ -16,12 +30,16 @@ class DemoAppState {
   /// E.2A: explicit mission choice (for scoring override logic)
   String? chosenMissionId;
 
+  // E.3A: in-memory history of outcomes (no persistence)
+  List<CompletedMissionRecord> completed;
+
   DemoAppState({
     required this.input,
     required this.catalog,
     required this.lastOutput,
     required this.selectedMissionId,
     required this.chosenMissionId,
+    required this.completed,
   });
 
   factory DemoAppState.initial() {
@@ -45,6 +63,7 @@ class DemoAppState {
       lastOutput: null,
       selectedMissionId: null,
       chosenMissionId: null,
+      completed: const [],
     );
   }
 
@@ -54,6 +73,7 @@ class DemoAppState {
     lastOutput = other.lastOutput;
     selectedMissionId = other.selectedMissionId;
     chosenMissionId = other.chosenMissionId;
+    completed = other.completed;
   }
 
   DemoAppState copyWith({
@@ -62,6 +82,7 @@ class DemoAppState {
     OrchestratorOutputV1? lastOutput,
     String? selectedMissionId,
     String? chosenMissionId,
+    List<CompletedMissionRecord>? completed,
   }) {
     return DemoAppState(
       input: input ?? this.input,
@@ -69,6 +90,7 @@ class DemoAppState {
       lastOutput: lastOutput ?? this.lastOutput,
       selectedMissionId: selectedMissionId ?? this.selectedMissionId,
       chosenMissionId: chosenMissionId ?? this.chosenMissionId,
+      completed: completed ?? this.completed,
     );
   }
 }

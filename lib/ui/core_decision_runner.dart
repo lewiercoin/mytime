@@ -62,4 +62,72 @@ class CoreDecisionRunner {
     list.insert(0, chosen);
     return MissionCatalogV1(missions: list);
   }
+
+  /// E.3A: mark mission as done - produce a new recommendation after applying world outcome
+  static OrchestratorOutputV1 decideAfterDone({
+    required OrchestratorInputV1 input,
+    required MissionCatalogV1 catalog,
+    required String missionId,
+    required int actualTimeSpentMin,
+    required WorldOutcome outcome,
+  }) {
+    final catRes = MissionCatalogValidator.validate(catalog);
+    if (!catRes.ok) {
+      throw StateError('Invalid mission catalog: ${catRes.errors}');
+    }
+
+    final snap = OrchestratorCatalogAdapterV1.toSnapshot(
+      input: input,
+      catalog: catalog,
+      snapshotId: 'snap_done',
+      loopVersion: 'timechoice/v1',
+    );
+
+    final updated = TimeChoiceLoopSnapshot(
+      snapshotId: snap.snapshotId,
+      timestampUtc: snap.timestampUtc,
+      loopVersion: snap.loopVersion,
+      ageMode: snap.ageMode,
+      surface: snap.surface,
+      contextTrigger: snap.contextTrigger,
+      subjectRef: snap.subjectRef,
+      familyRef: snap.familyRef,
+      availableTimeWindow: snap.availableTimeWindow,
+      energyState: snap.energyState,
+      dreamAnchor: snap.dreamAnchor,
+      parentFrame: snap.parentFrame,
+      frameOptions: snap.frameOptions,
+      chosenOption: ChosenOption(
+        selectedOptionId: missionId,
+        decisionLatencyMs: 0,
+        choiceMode: ChoiceMode.tap,
+        overrideFlag: true,
+      ),
+      worldResponse: WorldResponse(
+        outcome: outcome,
+        actualTimeSpentMin: actualTimeSpentMin,
+        dreamProgressDelta: 0.0,
+        moneyDelta: null,
+        frictionEvents: const [],
+        celebrationShown: true,
+      ),
+      reflection: null,
+      learningUpdate: snap.learningUpdate,
+    );
+
+    final orch = TimeChoiceOrchestratorV1();
+    final result = orch.decide(
+      snapshot: updated,
+      nowUtc: DateTime.now().toUtc(),
+      newId: () => 'evt_done',
+      emitTelemetry: false,
+    );
+
+    final outRes = OrchestratorOutputValidator.validate(result.output);
+    if (!outRes.ok) {
+      throw StateError('Invalid orchestrator output: ${outRes.errors}');
+    }
+
+    return result.output;
+  }
 }

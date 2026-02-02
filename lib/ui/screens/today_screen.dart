@@ -3,6 +3,8 @@ import 'package:mytime/timechoice/timechoice.dart';
 
 import '../core_decision_runner.dart';
 import '../demo_app_state.dart';
+import 'celebration_overlay.dart';
+import 'mission_done_panel.dart';
 
 class TodayScreen extends StatelessWidget {
   final DemoAppState state;
@@ -45,33 +47,126 @@ class TodayScreen extends StatelessWidget {
           _RecommendationCard(output: output),
           const SizedBox(height: 12),
           _MiniMetaCard(output: output),
+          const SizedBox(height: 12),
+          _CompletedMiniList(completed: state.completed),
           const Spacer(),
-          FilledButton(
-            onPressed: () {
-              final refreshed = state.input;
-              final updated = OrchestratorInputV1(
-                currentTimeUtc: DateTime.now().toUtc(),
-                timeRemainingMin: refreshed.timeRemainingMin,
-                currentTimeBlock: refreshed.currentTimeBlock,
-                childId: refreshed.childId,
-                ageMode: refreshed.ageMode,
-                surface: refreshed.surface,
-                activeGoalId: refreshed.activeGoalId,
-                progressToGoal: refreshed.progressToGoal,
-                coldStart: refreshed.coldStart,
-                parentConstraints: refreshed.parentConstraints,
-              );
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton(
+                  onPressed: () {
+                    final refreshed = state.input;
+                    final updated = OrchestratorInputV1(
+                      currentTimeUtc: DateTime.now().toUtc(),
+                      timeRemainingMin: refreshed.timeRemainingMin,
+                      currentTimeBlock: refreshed.currentTimeBlock,
+                      childId: refreshed.childId,
+                      ageMode: refreshed.ageMode,
+                      surface: refreshed.surface,
+                      activeGoalId: refreshed.activeGoalId,
+                      progressToGoal: refreshed.progressToGoal,
+                      coldStart: refreshed.coldStart,
+                      parentConstraints: refreshed.parentConstraints,
+                    );
 
-              final out = CoreDecisionRunner.decide(
-                input: updated,
-                catalog: state.catalog,
-              );
+                    final out = CoreDecisionRunner.decide(
+                      input: updated,
+                      catalog: state.catalog,
+                    );
 
-              onStateChanged(state.copyWith(input: updated, lastOutput: out));
-            },
-            child: const Text('Odśwież rekomendację'),
+                    onStateChanged(
+                        state.copyWith(input: updated, lastOutput: out));
+                  },
+                  child: const Text('Odśwież'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton.tonal(
+                  onPressed: () {
+                    final missionId = output.mainOptionId;
+
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (_) => MissionDonePanel(
+                        missionId: missionId,
+                        suggestedTimeMin: 20,
+                        onConfirm: (actualTimeMin, outcome) async {
+                          await CelebrationOverlay.show(context);
+
+                          final newCompleted = [
+                            ...state.completed,
+                            CompletedMissionRecord(
+                              missionId: missionId,
+                              completedAtUtc: DateTime.now().toUtc(),
+                              actualTimeSpentMin: actualTimeMin,
+                              outcome: outcome,
+                            ),
+                          ];
+
+                          final newOut = CoreDecisionRunner.decideAfterDone(
+                            input: state.input,
+                            catalog: state.catalog,
+                            missionId: missionId,
+                            actualTimeSpentMin: actualTimeMin,
+                            outcome: outcome,
+                          );
+
+                          onStateChanged(
+                            state.copyWith(
+                              completed: newCompleted,
+                              lastOutput: newOut,
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                  child: const Text('ZROBIONE!'),
+                ),
+              ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CompletedMiniList extends StatelessWidget {
+  final List<CompletedMissionRecord> completed;
+
+  const _CompletedMiniList({required this.completed});
+
+  @override
+  Widget build(BuildContext context) {
+    if (completed.isEmpty) {
+      return const Text(
+        'Brak ukończonych misji (w tej sesji).',
+        style: TextStyle(color: Colors.black54),
+      );
+    }
+
+    final last = completed.reversed.take(3).toList();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Ostatnio ukończone',
+                style: TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            for (final r in last)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                    '• ${r.missionId} (${r.outcome.name}, ${r.actualTimeSpentMin}m)'),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -98,7 +193,8 @@ class _TimeCard extends StatelessWidget {
             Expanded(
               child: Text(
                 'Masz ${h}h ${m}m wolnego • blok: ${block.name}',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -121,7 +217,8 @@ class _RecommendationCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Twoja misja na teraz', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            const Text('Twoja misja na teraz',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             Text(
               output.mainOptionId,
@@ -129,7 +226,8 @@ class _RecommendationCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             if (output.alternativeOptionIds.isNotEmpty) ...[
-              const Text('Alternatywy (max 2):', style: TextStyle(fontWeight: FontWeight.w600)),
+              const Text('Alternatywy (max 2):',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
               for (final alt in output.alternativeOptionIds)
                 Padding(

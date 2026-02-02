@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core_decision_runner.dart';
 import '../demo_app_state.dart';
 import '../demo_catalog.dart';
+import 'mission_detail_panel.dart';
 
 class TasksScreen extends StatelessWidget {
   final DemoAppState state;
@@ -49,19 +50,14 @@ class TasksScreen extends StatelessWidget {
                     ),
                     trailing: selected ? const Icon(Icons.check_circle) : null,
                     onTap: () {
-                      final updatedCatalog = DemoCatalog.withSelectedFirst(
-                          state.catalog, m.missionId);
-
-                      final out = CoreDecisionRunner.decide(
-                        input: state.input,
-                        catalog: updatedCatalog,
-                      );
-
-                      onStateChanged(
-                        state.copyWith(
-                          selectedMissionId: m.missionId,
-                          catalog: updatedCatalog,
-                          lastOutput: out,
+                      // E.2B: Open bottom sheet with mission details
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (ctx) => MissionDetailPanel(
+                          mission: m,
+                          state: state,
+                          onStateChanged: onStateChanged,
                         ),
                       );
                     },
@@ -81,6 +77,7 @@ class TasksScreen extends StatelessWidget {
               onStateChanged(
                 state.copyWith(
                   selectedMissionId: null,
+                  chosenMissionId: null,
                   catalog: resetCatalog,
                   lastOutput: out,
                 ),

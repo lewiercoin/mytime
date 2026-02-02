@@ -13,11 +13,15 @@ class DemoAppState {
   /// moving it to the front of the catalog (still deterministic due to sorting in adapter).
   String? selectedMissionId;
 
+  /// E.2A: explicit mission choice (for scoring override logic)
+  String? chosenMissionId;
+
   DemoAppState({
     required this.input,
     required this.catalog,
     required this.lastOutput,
     required this.selectedMissionId,
+    required this.chosenMissionId,
   });
 
   factory DemoAppState.initial() {
@@ -40,6 +44,7 @@ class DemoAppState {
       catalog: DemoCatalog.defaultCatalog(),
       lastOutput: null,
       selectedMissionId: null,
+      chosenMissionId: null,
     );
   }
 
@@ -48,6 +53,7 @@ class DemoAppState {
     catalog = other.catalog;
     lastOutput = other.lastOutput;
     selectedMissionId = other.selectedMissionId;
+    chosenMissionId = other.chosenMissionId;
   }
 
   DemoAppState copyWith({
@@ -55,12 +61,14 @@ class DemoAppState {
     MissionCatalogV1? catalog,
     OrchestratorOutputV1? lastOutput,
     String? selectedMissionId,
+    String? chosenMissionId,
   }) {
     return DemoAppState(
       input: input ?? this.input,
       catalog: catalog ?? this.catalog,
       lastOutput: lastOutput ?? this.lastOutput,
       selectedMissionId: selectedMissionId ?? this.selectedMissionId,
+      chosenMissionId: chosenMissionId ?? this.chosenMissionId,
     );
   }
 }

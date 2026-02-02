@@ -20,6 +20,7 @@ export 'enums/scoring_input_field.dart';
 export 'dto/time_choice_loop_snapshot.dart';
 export 'dto/scoring_trace.dart';
 export 'dto/telemetry.dart';
+export 'dto/orchestrator_output_v1.dart';
 
 // Validators
 export 'validators/validator_result.dart';
@@ -29,6 +30,7 @@ export 'validators/telemetry_validator.dart';
 export 'validators/judgement_lint.dart';
 export 'validators/scoring_input_whitelist.dart';
 export 'validators/score_config_validator.dart';
+export 'validators/orchestrator_output_validator.dart';
 
 // Scoring + config
 export 'scoring/scoring_engine.dart';
@@ -39,6 +41,9 @@ export 'scoring/config/score_config_v1.dart';
 // Telemetry
 export 'telemetry/snapshot_to_telemetry_mapper.dart';
 export 'telemetry/telemetry_idempotency.dart';
+
+// Orchestrator (D.1)
+export 'orchestrator/timechoice_orchestrator_v1.dart';
 
 // Runner (C.6)
 export 'timechoice_loop_runner.dart';

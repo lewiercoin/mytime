@@ -102,6 +102,7 @@ class TodayScreen extends StatelessWidget {
                               completedAtUtc: DateTime.now().toUtc(),
                               actualTimeSpentMin: actualTimeMin,
                               outcome: outcome,
+                              approvalState: ParentApprovalState.pending,
                             ),
                           ];
 
@@ -139,6 +140,17 @@ class _CompletedMiniList extends StatelessWidget {
 
   const _CompletedMiniList({required this.completed});
 
+  String _badge(ParentApprovalState st) {
+    switch (st) {
+      case ParentApprovalState.pending:
+        return '⏳ CZEKA';
+      case ParentApprovalState.approved:
+        return '✅ OK';
+      case ParentApprovalState.rejected:
+        return '❌ NIE';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (completed.isEmpty) {
@@ -163,7 +175,8 @@ class _CompletedMiniList extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Text(
-                    '• ${r.missionId} (${r.outcome.name}, ${r.actualTimeSpentMin}m)'),
+                  '${_badge(r.approvalState)} ${r.missionId} (${r.outcome.name}, ${r.actualTimeSpentMin}m)',
+                ),
               ),
           ],
         ),

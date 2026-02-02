@@ -4,6 +4,8 @@ import '../core_decision_runner.dart';
 import '../demo_app_state.dart';
 import '../demo_catalog.dart';
 import 'mission_detail_panel.dart';
+import 'parent_approval_panel.dart';
+import 'celebration_overlay.dart';
 
 class TasksScreen extends StatelessWidget {
   final DemoAppState state;
@@ -18,62 +20,129 @@ class TasksScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final missions = state.catalog.missions;
+    final pending = state.pendingApprovals;
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'ZADANIA',
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Katalog "na teraz" (${missions.length}) — bez tekstu, tylko ID + parametry',
-            style: const TextStyle(color: Colors.black54),
-          ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: ListView.separated(
-              itemCount: missions.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (context, idx) {
-                final m = missions[idx];
-                final selected = state.selectedMissionId == m.missionId;
-
-                return Card(
-                  child: ListTile(
-                    title: Text(m.missionId),
-                    subtitle: Text(
-                      'type=${m.type.name} • effort=${m.effort.name} • time=${m.timeCostMin}m • dreamΔ=${m.dreamDelta}',
-                    ),
-                    trailing: selected ? const Icon(Icons.check_circle) : null,
-                    onTap: () {
-                      // E.2B: Open bottom sheet with mission details
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (ctx) => MissionDetailPanel(
-                          mission: m,
-                          state: state,
-                          onStateChanged: onStateChanged,
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('ZADANIA'),
+        actions: [
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Text('⏳ ${pending.length}'),
             ),
           ),
-          FilledButton(
+          IconButton(
+            tooltip: 'Panel rodzica',
+            icon: const Icon(Icons.verified_user_outlined),
+            onPressed: () {
+              showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                showDragHandle: true,
+                builder: (ctx) {
+                  return ParentApprovalPanel(
+                    pending: pending,
+                    onApprove: (missionId) async {
+                      final updated = state.completed
+                          .map((r) => r.missionId == missionId
+                              ? r.copyWith(
+                                  approvalState: ParentApprovalState.approved)
+                              : r)
+                          .toList(growable: false);
+
+                      onStateChanged(state.copyWith(completed: updated));
+
+                      Navigator.of(ctx).pop();
+
+                      // druga celebracja po zatwierdzeniu (MVP restart)
+                      await CelebrationOverlay.show(context);
+
+                      if (context.mounted) {
+                        showDialog<void>(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text('MASZ NAGRODĘ!'),
+                            content: const Text('Super! Rodzic zatwierdził.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                    },
+                    onReject: (missionId) {
+                      final updated = state.completed
+                          .map((r) => r.missionId == missionId
+                              ? r.copyWith(
+                                  approvalState: ParentApprovalState.rejected)
+                              : r)
+                          .toList(growable: false);
+
+                      onStateChanged(state.copyWith(completed: updated));
+                      Navigator.of(ctx).pop();
+                    },
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(12),
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Do zrobienia',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  Text('Czekają: ${pending.length}'),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...missions.map((m) {
+            return Card(
+              child: ListTile(
+                title: Text(m.missionId),
+                subtitle: Text(
+                  'type=${m.type.name} • effort=${m.effort.name} • time=${m.timeCostMin}m • dreamΔ=${m.dreamDelta}',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  showModalBottomSheet<void>(
+                    context: context,
+                    showDragHandle: true,
+                    isScrollControlled: true,
+                    builder: (_) => MissionDetailPanel(
+                      mission: m,
+                      state: state,
+                      onStateChanged: onStateChanged,
+                    ),
+                  );
+                },
+              ),
+            );
+          }),
+          const SizedBox(height: 12),
+          OutlinedButton(
             onPressed: () {
               final resetCatalog = DemoCatalog.defaultCatalog();
               final out = CoreDecisionRunner.decide(
                 input: state.input,
                 catalog: resetCatalog,
               );
-
               onStateChanged(
                 state.copyWith(
                   selectedMissionId: null,

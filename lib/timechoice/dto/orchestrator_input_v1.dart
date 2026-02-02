@@ -1,8 +1,7 @@
 import '../enums/age_mode.dart';
 import '../enums/surface.dart';
 import '../enums/option_type.dart';
-
-enum TimeBlockV1 { school, free, family, sleep }
+import '../enums/time_block_v1.dart';
 
 class ParentConstraintsV1 {
   final List<OptionType> blockedTypes;

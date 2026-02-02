@@ -6,6 +6,7 @@ import '../enums/option_type.dart';
 import '../enums/eligibility_reason_code.dart';
 import '../enums/preferred_duration_band.dart';
 import '../enums/learning_updated_field.dart';
+import '../enums/time_block_v1.dart';
 
 class OrchestratorInputAdapterV1 {
   static TimeChoiceLoopSnapshot toSnapshot({
@@ -26,8 +27,8 @@ class OrchestratorInputAdapterV1 {
         effort: OptionEffort.low,
         timeCostMin: (duration * 0.5).round().clamp(0, 240),
         eligibility: Eligibility(
-          isAllowedByParentFrame:
-              !input.parentConstraints.blockedTypes.contains(OptionType.mission),
+          isAllowedByParentFrame: !input.parentConstraints.blockedTypes
+              .contains(OptionType.mission),
           fitsTimeWindow: true,
           hardBlockHit: false,
           reasonCodes: const <EligibilityReasonCode>[],

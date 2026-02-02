@@ -3,8 +3,8 @@ import '../dto/orchestrator_input_v1.dart';
 import '../dto/time_choice_loop_snapshot.dart';
 import '../enums/context_trigger.dart';
 import '../enums/eligibility_reason_code.dart';
-import '../enums/option_type.dart';
 import '../enums/preferred_duration_band.dart';
+import '../enums/time_block_v1.dart';
 
 class OrchestratorCatalogAdapterV1 {
   static TimeChoiceLoopSnapshot toSnapshot({

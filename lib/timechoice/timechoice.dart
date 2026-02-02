@@ -15,6 +15,7 @@ export 'enums/learning_updated_field.dart';
 export 'enums/preferred_duration_band.dart';
 export 'enums/eligibility_reason_code.dart';
 export 'enums/scoring_input_field.dart';
+export 'enums/time_block_v1.dart';
 
 // DTO
 export 'dto/time_choice_loop_snapshot.dart';
